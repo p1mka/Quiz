@@ -14,8 +14,8 @@ import { QuizItem } from "../main/components";
 import { Button, SimpleLoader } from "../../components";
 import { QuizCreate, QuizEdit } from "./components";
 import { QuizPage } from "../quiz-page/quiz-page";
-import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
 const MyQuizzesContainer = ({ className, ...props }) => {
   const navigate = useNavigate();
@@ -36,8 +36,8 @@ const MyQuizzesContainer = ({ className, ...props }) => {
     dispatch(setIsShowQuizPage(false));
     request("/myquizlist")
       .then(({ error, quizList }) => {
-        if (error) {
-          setError(error);
+        if (error.message) {
+          setError("Для просмотра этой страницы нужно авторизоваться!");
           return;
         }
         dispatch(setQuizList(quizList));
@@ -60,7 +60,7 @@ const MyQuizzesContainer = ({ className, ...props }) => {
           width="10rem"
           height="3rem"
           fontSize="16px"
-          disabled={isCreating}
+          disabled={isCreating || isLoading}
         >
           Создать тест
         </Button>

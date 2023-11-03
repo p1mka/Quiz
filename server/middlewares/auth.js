@@ -8,15 +8,14 @@ module.exports = async function auth(req, res, next) {
     const user = await User.findOne({ _id: token.id });
 
     if (!user) {
-      res.send({ error: "Пользователь не найден!" });
-      return;
+      throw new Error("Пользователь не найден!");
     }
     req.user = user;
 
     next();
   } catch (e) {
     res.send({
-      error: "Для доступа к этой странице необходимо авторизоваться!",
+      error: e,
     });
   }
 };
