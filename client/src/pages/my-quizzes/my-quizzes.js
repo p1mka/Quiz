@@ -36,7 +36,7 @@ const MyQuizzesContainer = ({ className, ...props }) => {
     dispatch(setIsShowQuizPage(false));
     request("/myquizlist")
       .then(({ error, quizList }) => {
-        if (error.message) {
+        if (error) {
           setError("Для просмотра этой страницы нужно авторизоваться!");
           return;
         }
