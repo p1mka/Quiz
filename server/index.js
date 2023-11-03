@@ -56,17 +56,11 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  try {
-    const { user, token } = await loginUser(req.body.email, req.body.password);
+  const { user, token } = await loginUser(req.body.email, req.body.password);
 
-    res
-      .cookie("token", token, { httpOnly: true })
-      .send({ user: mapUser(user), error: null });
-  } catch (e) {
-    res.send({
-      error: e.message,
-    });
-  }
+  res
+    .cookie("token", token, { httpOnly: true })
+    .send({ user: mapUser(user), error: null });
 });
 
 app.post("/logout", async (req, res) => {
