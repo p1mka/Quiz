@@ -1,12 +1,12 @@
+import { request } from "../utils";
 import { setIsLoading } from "./set-is-loading";
+import { setQuizList } from "./set-quiz-list";
 
 export const sendQuizResultAsync = (quizResult) => (dispatch) => {
   dispatch(setIsLoading(true));
-  fetch("http://localhost:3005/results", {
-    method: "POST",
-    headers: { "Content-Type": "application/json;charset=utf-8" },
-    body: JSON.stringify({
-      quizResult,
-    }),
-  }).finally(() => dispatch(setIsLoading(false)));
+  request("/results", "POST", quizResult)
+    .then(({ error, quizList }) => {
+      dispatch(setQuizList(quizList));
+    })
+    .finally(() => dispatch(setIsLoading(false)));
 };

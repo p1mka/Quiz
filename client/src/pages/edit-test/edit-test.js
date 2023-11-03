@@ -2,15 +2,16 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { QuestionPage } from "../question-page/question-page";
 import { Button, Loader } from "../../components";
-import { selectIsLoading, selectQuestions } from "../../selectors";
-import { addQuestion, setIsLoading, setQuestions } from "../../actions";
+import { selectIsLoading, selectQuizList } from "../../selectors";
+import { addQuestion, setIsLoading, setQuizList } from "../../actions";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { request } from "../../utils";
 
 const EditTestContainer = ({ className }) => {
-  const isLoading = useSelector(selectIsLoading);
   const dispatch = useDispatch();
-  const questions = useSelector(selectQuestions);
+  const isLoading = useSelector(selectIsLoading);
+  const quizList = useSelector(selectQuizList);
 
   const onAddQuestionButtonClick = () => dispatch(addQuestion());
 
@@ -18,10 +19,9 @@ const EditTestContainer = ({ className }) => {
 
   useEffect(() => {
     dispatch(setIsLoading(true));
-    fetch("http://localhost:3005/questions")
-      .then((res) => res.json())
-      .then((loadedQuestions) => {
-        dispatch(setQuestions(loadedQuestions));
+    request("/quizlist")
+      .then((data) => {
+        dispatch(setQuizList(data.quizList));
       })
       .finally(() => dispatch(setIsLoading(false)));
   }, [dispatch]);
@@ -33,9 +33,14 @@ const EditTestContainer = ({ className }) => {
       {isLoading ? (
         <Loader />
       ) : (
-        questions.map((question) => (
-          <div key={String(question._id)}>
-            <QuestionPage question={question} />
+        quizList.map(({ _id, quizTitle, questions }) => (
+          <div key={_id}>
+            {quizTitle}
+            {questions.map((question) => (
+              <div key={String(question._id)}>
+                <QuestionPage question={question} />
+              </div>
+            ))}
           </div>
         ))
       )}
@@ -56,6 +61,7 @@ export const EditTest = styled(EditTestContainer)`
   width: 70%;
   flex-direction: column;
   gap: 1rem;
+  margin: 0 auto;
 
   & .navigation-panel {
     display: flex;

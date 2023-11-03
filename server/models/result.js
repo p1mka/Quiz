@@ -11,6 +11,13 @@ const ResultSchema = mongoose.Schema({
     type: Array,
     required: true,
   },
+  user: {
+    type: Object,
+  },
+  quizId: {
+    type: String,
+    required: true,
+  },
 });
 
 const Result = mongoose.model("Result", ResultSchema);

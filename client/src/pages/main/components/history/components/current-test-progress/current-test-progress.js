@@ -1,42 +1,48 @@
 import styled from "styled-components";
 
 const CurrentTestProgressContainer = ({ className, result }) => {
-  const { _id, date, answers, quizLength } = result;
+  const { date, answers, quizLength, user } = result;
   const rightAnswersAmount = answers.filter((answer) => answer.isRight);
   return (
     <div className={className}>
-      <ul>
-        <li>
-          {date}
-          <div className="progress">
-            {answers.map(({ id, isRight }) => (
-              <div
-                key={id}
-                className={isRight ? "right-answer" : "incorrect-answer"}
-              />
-            ))}
-          </div>
-          <div>
-            Верно: {rightAnswersAmount.length} из {quizLength}
-          </div>
-        </li>
-      </ul>
+      <div className="user">
+        {user.name} {user.surname}
+      </div>
+      {date}
+      <div className="progress">
+        {answers.map(({ id, isRight }) => (
+          <div
+            key={id}
+            className={isRight ? "right-answer" : "incorrect-answer"}
+          />
+        ))}
+      </div>
+      <div>
+        Верно: {rightAnswersAmount.length} из {quizLength}
+      </div>
     </div>
   );
 };
 
 export const CurrentTestProgress = styled(CurrentTestProgressContainer)`
   display: flex;
-  width: 100%;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
   border: 2px solid #e5e5e5;
   border-radius: 0.5rem;
+  font-size: 14px;
+
+  & .user {
+    display: flex;
+    width: 30%;
+  }
+
+  & ul {
+    padding: 0;
+  }
   & li {
     display: flex;
-
-    gap: 1.5rem;
-    flex-direction: row;
+    gap: 1rem;
     list-style: none;
   }
 
@@ -53,6 +59,6 @@ export const CurrentTestProgress = styled(CurrentTestProgressContainer)`
   & .progress {
     display: flex;
     border: 2px solid #e5e5e5;
-    width: 15rem;
+    width: 5rem;
   }
 `;

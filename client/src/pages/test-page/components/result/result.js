@@ -14,9 +14,9 @@ const ResultContainer = ({
     (item) => item.isRight === true
   );
 
-  const onMainPageReturn = () => {
+  const onMyQuizzesPageReturn = () => {
     onQuizReset();
-    navigate("/");
+    navigate("/my-quizzes");
   };
 
   return (
@@ -40,8 +40,8 @@ const ResultContainer = ({
         <Button fontSize="18px" onClick={onQuizReset}>
           Начать заново
         </Button>
-        <Button fontSize="18px" onClick={onMainPageReturn}>
-          На главную
+        <Button fontSize="18px" onClick={onMyQuizzesPageReturn}>
+          К моим тестам
         </Button>
       </div>
     </div>

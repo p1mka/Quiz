@@ -1,33 +1,56 @@
 const Question = require("./models/question");
-const Result = require("./models/result");
+const Result = require("./models/Result");
+const Quiz = require("./models/Quiz");
 
+const getQuizList = async () => {
+  const result = await Quiz.find().populate("author").populate("results");
+  return result;
+};
 const getQuestions = async () => {
   const questions = await Question.find();
   return questions;
 };
 
-const getQuestionById = async ({ id }) => {
-  const question = await Question.findOne({ _id: id });
-  return question;
+const getQuizById = async ({ id }) => {
+  const quiz = await Quiz.findOne({ _id: id }).populate("results");
+  return quiz;
 };
 
-const editQuestion = async ({ id, title, answers }) => {
-  const updatedQuestion = await Question.updateOne(
-    { _id: id },
-    { title: title, answers: answers }
+const editQuiz = async (id, { title, questions }) => {
+  const updatedQuiz = await Quiz.findByIdAndUpdate(
+    id,
+    { title, questions },
+    { returnDocument: "after" }
   );
-  console.log(`Ответ с id ${id} изменен!`);
-  return updatedQuestion;
+  console.log(`Тест с id ${id} изменен!`);
+  return updatedQuiz;
 };
 
-const addQuestion = async ({ title, answers }) => {
-  await Question.create({ title: title, answers: answers });
-  console.log(`Вопрос ${title} добавлен!`);
+const addQuiz = async (title, questions, author) => {
+  const result = await Quiz.create({ title, questions, author });
+
+  console.log(`Тест ${title} добавлен!`);
+
+  return result;
 };
 
-const deleteQuestion = async (id) => {
-  await Question.deleteOne({ _id: id });
-  console.log(`Вопрос с id ${id} удален`);
+const getQuizzesByOwner = async ({ author }) => {
+  console.log(author);
+  const result = await Quiz.find({ author: author })
+    .populate("author")
+    .populate("results");
+
+  if (result.matchedCount === 0) {
+    throw new Error("Нет тестов, созданных этим пользователем");
+  }
+
+  return result;
+};
+
+const deleteQuiz = async (id) => {
+  await Quiz.deleteOne({ _id: id });
+  await Result.deleteMany({ quizId: id });
+  console.log(`Тест с id ${id} удален`);
 };
 
 const getResults = async () => {
@@ -36,16 +59,27 @@ const getResults = async () => {
   return results;
 };
 
-const addResult = async ({ date, quizLength, answers }) => {
-  await Result.create({ date: date, quizLength: quizLength, answers: answers });
+const addResult = async ({ answers, date, quizLength, user, quizId }) => {
+  const newResult = await Result.create({
+    quizId: quizId,
+    date: date,
+    quizLength: quizLength,
+    answers: answers,
+    user: user,
+  });
+  await Quiz.findByIdAndUpdate(quizId, {
+    $push: { results: newResult },
+  });
 };
 
 module.exports = {
-  addQuestion,
+  addQuiz,
+  editQuiz,
   addResult,
   getQuestions,
-  getQuestionById,
+  getQuizById,
+  getQuizList,
+  getQuizzesByOwner,
   getResults,
-  editQuestion,
-  deleteQuestion,
+  deleteQuiz,
 };

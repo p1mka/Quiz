@@ -2,13 +2,13 @@ import { useState } from "react";
 import styled from "styled-components";
 import { EditIsEnable, EditIsDisable } from "./components";
 import { useDispatch } from "react-redux";
-import { removeQuestionAsync } from "../../actions";
+// import { removeQuestionAsync } from "../../actions";
 
-const QuestionPageContainer = ({ className, question }) => {
+const QuestionPageContainer = ({ className }, question) => {
   const { _id, title, answers, isNowCreated } = question;
   const dispatch = useDispatch();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
 
   const onEditButtonClick = () => {
     setIsEditing(!isEditing);
@@ -16,7 +16,7 @@ const QuestionPageContainer = ({ className, question }) => {
   const onRemoveButtonClick = (_id) => {
     const message = window.confirm(`Удалить вопрос ${title} ?`);
     if (message) {
-      dispatch(removeQuestionAsync(_id));
+      // dispatch(removeQuestionAsync(_id));
     }
   };
   return (

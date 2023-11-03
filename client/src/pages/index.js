@@ -2,3 +2,8 @@ export * from "./main/main";
 export * from "./test-page/test-page";
 export * from "./edit-test/edit-test";
 export * from "./question-page/question-page";
+export * from "./login/login";
+export * from "./registration/registration";
+export * from "./my-quizzes/my-quizzes";
+export * from "./quiz-page/quiz-page";
+export * from "./my-cabinet/my-cabinet";

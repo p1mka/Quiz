@@ -1,152 +1,183 @@
-import { useState } from "react";
 import { Button, Input, Loader } from "../../../../components";
-import {
-  addQuestionAsync,
-  saveQuestionAsync,
-  setIsLoading,
-} from "../../../../actions";
-import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import { useSelector } from "react-redux";
 import { selectIsLoading } from "../../../../selectors";
+import styled from "styled-components";
+import { useState } from "react";
 
 const EditIsEnableContainer = ({
   className,
-  title,
-  answers,
-  questionId,
-  setIsEditing,
-  isNowCreated,
+  question,
+  questionNumber,
+  newQuizData,
+  setNewQuizData,
+  setErrors,
 }) => {
-  const [error, setError] = useState(null);
-  const [questionTitle, setQuestionTitle] = useState(title);
-  const [answer, setAnswer] = useState(answers);
+  const { questionId, questionTitle, answers, isNowCreated } = question;
 
-  const dispatch = useDispatch();
   const isLoading = useSelector(selectIsLoading);
 
-  const onQuestionTitleChange = ({ target }) => {
-    setQuestionTitle(target.value);
-    setError(null);
-  };
+  const [quiestionIsEditing, setQuestionIsEditing] = useState(false);
 
-  const onAnswerChange = (answerId, newValue) => {
-    setError(null);
-    setAnswer((a) => {
-      return a.map((item) =>
-        item.id === answerId ? { ...item, description: newValue } : item
-      );
+  const onQuestionTitleChange = ({ target }) => {
+    setErrors(null);
+    setNewQuizData(() => {
+      const updatedQuestions = [...newQuizData.questions];
+      updatedQuestions[questionNumber] = {
+        ...updatedQuestions[questionNumber],
+        questionTitle: target.value,
+      };
+      return { ...newQuizData, questions: updatedQuestions };
     });
   };
-  const onAddAnswerButtonClick = () =>
-    setAnswer([...answer, { id: String(Date.now()), description: "" }]);
+
+  const onRemoveQuestionButtonClick = () => {
+    setErrors(null);
+    setNewQuizData(() => {
+      const updatedQuestions = [...newQuizData.questions].filter((q) => {
+        return q.questionId !== questionId;
+      });
+      return { ...newQuizData, questions: updatedQuestions };
+    });
+  };
+
+  const onAddAnswerButtonClick = () => {
+    setErrors(null);
+    setNewQuizData(() => {
+      const updatedQuestions = [...newQuizData.questions];
+      updatedQuestions[questionNumber] = {
+        ...updatedQuestions[questionNumber],
+        answers: [
+          ...updatedQuestions[questionNumber].answers,
+          { id: Date.now(), description: "", isRight: false },
+        ],
+      };
+      return { ...newQuizData, questions: updatedQuestions };
+    });
+  };
+
+  const onAnswerChange = (idx, newValue) => {
+    setErrors(null);
+    setNewQuizData(() => {
+      const updatedQuestions = [...newQuizData.questions];
+      const updatedAnswers = [...updatedQuestions[questionNumber].answers];
+
+      updatedAnswers[idx].description = newValue;
+      updatedQuestions[questionNumber] = {
+        ...updatedQuestions[questionNumber],
+        answers: updatedAnswers,
+      };
+      return { ...newQuizData, questions: updatedQuestions };
+    });
+  };
 
   const onRemoveAnswerButtonClick = (answerId) => {
-    const filteredAnswers = answer.filter((a) => a.id !== answerId);
-    setAnswer(filteredAnswers);
-  };
+    setErrors(null);
+    setNewQuizData(() => {
+      const updatedQuestions = [...newQuizData.questions];
+      const updatedAnswers = [
+        ...updatedQuestions[questionNumber].answers,
+      ].filter((a) => a.id !== answerId);
 
-  const onCheckRightAnswerButtonClick = (answerId, isRight = false) =>
-    setAnswer((a) => {
-      return a.map((item) =>
-        item.id === answerId ? { ...item, isRight: !isRight } : item
-      );
+      updatedQuestions[questionNumber] = {
+        ...updatedQuestions[questionNumber],
+        answers: updatedAnswers,
+      };
+      return { ...newQuizData, questions: updatedQuestions };
     });
-
-  const onGoBackButtonClick = () => {
-    setIsEditing(false);
   };
 
-  const onSaveButtonClick = () => {
-    console.log(answer);
-    if (!questionTitle) {
-      setError("Вопрос не должен быть пустым!");
-    } else if (!answer.length) {
-      setError("Добавьте хотя бы один вариант ответа!");
-    } else if (!answer[0].description) {
-      setError("Ответ не должен быть пустым!");
-    } else if (!answer[0].isRight) {
-      setError("Укажите ответ, который является верным!");
-    } else {
-      setError(null);
-      dispatch(setIsLoading(true));
-      isNowCreated
-        ? dispatch(addQuestionAsync(questionId, questionTitle, answer))
-        : dispatch(saveQuestionAsync(questionId, questionTitle, answer));
-      setIsEditing(false);
-      dispatch(setIsLoading(false));
-    }
+  const onCheckRightAnswerButtonClick = (idx, isRight = false) => {
+    setErrors([]);
+    setNewQuizData(() => {
+      const updatedQuestions = [...newQuizData.questions];
+      const updatedAnswers = [...updatedQuestions[questionNumber].answers];
+
+      updatedAnswers[idx].isRight = !isRight;
+      updatedQuestions[questionNumber] = {
+        ...updatedQuestions[questionNumber],
+        answers: updatedAnswers,
+      };
+      return { ...newQuizData, questions: updatedQuestions };
+    });
   };
+
+  const onEditQuestionButtonClick = () =>
+    setQuestionIsEditing(!quiestionIsEditing);
+
+  // const onGoBackButtonClick = () => {
+  //   setIsEditing(false);
+  // };
 
   return isLoading ? (
     <Loader />
   ) : (
     <div className={className}>
-      <Input
-        value={questionTitle}
-        onChange={onQuestionTitleChange}
-        required={true}
-      />
-      {!!error && <div>{error}</div>}
+      <i onClick={onEditQuestionButtonClick} className="edit-icon">
+        {quiestionIsEditing ? "▲" : "▼"}
+      </i>
+      <h4>Вопрос № {questionNumber + 1}</h4>
+      <i onClick={() => onRemoveQuestionButtonClick()}>&times; </i>
+      {!quiestionIsEditing && !isNowCreated ? (
+        <div>{questionTitle}</div>
+      ) : (
+        <>
+          <Input
+            placeholder="Введите вопрос..."
+            value={questionTitle}
+            onChange={onQuestionTitleChange}
+            required={true}
+          />
 
-      <div className="answers">
-        <h4>Варианты ответов</h4>
-        {answer &&
-          answer.map(({ id: answerId, description, isRight }) => (
-            <div key={answerId} id={answerId} className="answer-block">
-              <Input
-                className="answer"
-                defaultValue={description}
-                onChange={({ target }) =>
-                  onAnswerChange(answerId, target.value)
-                }
-              />
-              <div className="answer-edit-buttons">
-                <Button
-                  fontSize="18px"
-                  width="100%"
-                  height="50%"
-                  background="green"
-                  onClick={() =>
-                    onCheckRightAnswerButtonClick(answerId, isRight)
-                  }
-                >
-                  {isRight ? "✓" : "●"}
-                </Button>
-                <Button
-                  fontSize="18px"
-                  width="auto"
-                  height="50%"
-                  background="red"
-                  onClick={() => onRemoveAnswerButtonClick(answerId)}
-                >
-                  &times;
-                </Button>
-              </div>
-            </div>
-          ))}
-      </div>
-      <Button
-        width="14%"
-        background="rgb(134 214 132)"
-        onClick={onAddAnswerButtonClick}
-      >
-        +
-      </Button>
-      <div className="operation-panel">
-        {!isNowCreated && (
-          <Button fontSize="18px" onClick={onGoBackButtonClick}>
-            Назад
+          <div className="answers">
+            <h4>Варианты ответов</h4>
+            {answers &&
+              answers.map(({ id: answerId, description, isRight }, idx) => (
+                <div key={answerId} id={answerId} className="answer-block">
+                  <Input
+                    placeholder="Введите ответ..."
+                    className="answer"
+                    defaultValue={description}
+                    onChange={({ target }) => onAnswerChange(idx, target.value)}
+                    required={true}
+                  />
+                  <div className="answer-edit-buttons">
+                    <Button
+                      fontSize="18px"
+                      width="100%"
+                      height="50%"
+                      background="green"
+                      type="button"
+                      onClick={() =>
+                        onCheckRightAnswerButtonClick(idx, isRight)
+                      }
+                    >
+                      {isRight ? "✓" : "●"}
+                    </Button>
+                    <Button
+                      fontSize="18px"
+                      width="auto"
+                      height="50%"
+                      background="red"
+                      type="button"
+                      onClick={() => onRemoveAnswerButtonClick(answerId)}
+                    >
+                      &times;
+                    </Button>
+                  </div>
+                </div>
+              ))}
+          </div>
+          <Button
+            width="14%"
+            background="rgb(134 214 132)"
+            type="button"
+            onClick={onAddAnswerButtonClick}
+          >
+            +
           </Button>
-        )}
-        <Button
-          fontSize="18px"
-          background="rgb(134 214 132)"
-          onClick={onSaveButtonClick}
-          disabled={!!error}
-        >
-          Сохранить
-        </Button>
-      </div>
+          <div className="operation-panel"></div>
+        </>
+      )}
     </div>
   );
 };
@@ -154,8 +185,13 @@ const EditIsEnableContainer = ({
 export const EditIsEnable = styled(EditIsEnableContainer)`
   display: flex;
   flex-direction: column;
-  padding: 0.5rem 0;
+  margin: 1rem;
+  padding: 0.5rem 2rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.5rem;
   gap: 1rem;
+  background: #f0f0f0;
+  position: relative;
 
   & .answers {
     display: flex;
@@ -194,5 +230,12 @@ export const EditIsEnable = styled(EditIsEnableContainer)`
 
   & h4 {
     margin-bottom: 0;
+  }
+
+  & .edit-icon {
+    position: absolute;
+    top: 23px;
+    right: 40px;
+    font-size: 23px;
   }
 `;

@@ -3,11 +3,10 @@ import { CurrentTestProgress } from "./components";
 import { Button } from "../../../../components";
 import styled from "styled-components";
 
-const HistoryContainer = ({ className }) => {
+const HistoryContainer = ({ className, results }) => {
   const [isDateSortEnable, setIsDateSortEnable] = useState(false);
   const [isRightAnswersSortEnable, setIsRightAnswersSortEnable] =
     useState(false);
-  const results = JSON.parse(localStorage.getItem("results"));
 
   const sortedByDateResults = isDateSortEnable
     ? results.sort((a, b) => {
@@ -50,6 +49,7 @@ const HistoryContainer = ({ className }) => {
         <>
           <div className="sort-buttons">
             <Button
+              width="10rem"
               height="1.5rem"
               fontSize="12px"
               onClick={onDateSortButtonClick}
@@ -67,8 +67,8 @@ const HistoryContainer = ({ className }) => {
             </Button>
           </div>
 
-          {sortedResults.map((result, id) => (
-            <CurrentTestProgress key={id} result={result} />
+          {sortedResults.map((result) => (
+            <CurrentTestProgress result={result} key={result._id} />
           ))}
         </>
       ) : (
@@ -81,8 +81,9 @@ const HistoryContainer = ({ className }) => {
 export const History = styled(HistoryContainer)`
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 1rem;
+  margin: 0 1rem;
+  width: 65%;
 
   & .sort-buttons {
     display: flex;

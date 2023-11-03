@@ -5,7 +5,9 @@ import { selectIsLoading, selectQuestions } from "../../selectors";
 import { Button, Loader } from "../../components";
 import { Result } from "./components";
 import { getDate } from "./utils";
+import { request } from "../../utils";
 import styled from "styled-components";
+import { useParams } from "react-router-dom";
 
 const TestPageContainer = ({ className }) => {
   const dispatch = useDispatch();
@@ -15,24 +17,29 @@ const TestPageContainer = ({ className }) => {
   const [userAnswer, setUserAnswer] = useState("");
   const [showRightAnswer, setShowRightAnswer] = useState(false);
   const [testProgress, setTestProgress] = useState({ answers: [] });
-  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
 
   const results = JSON.parse(localStorage.getItem("results")) || [];
+  const params = useParams();
 
   useEffect(() => {
     dispatch(setIsLoading(true));
-    fetch("http://localhost:3005/questions")
-      .then((res) => res.json())
-      .then((loadedQuestions) => {
+    request(`/quizlist/${params.id}`)
+      .then(({ error, quiz }) => {
+        const { questions: loadedQuestions } = quiz;
         dispatch(setQuestions(loadedQuestions));
         setTestProgress({
           ...testProgress,
+          quizId: params.id,
           date: getDate(),
           quizLength: loadedQuestions.length,
         });
       })
+      .catch((e) => {
+        console.log(e);
+      })
 
       .finally(() => dispatch(setIsLoading(false)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const questionsLength = questions.length;
@@ -87,7 +94,7 @@ const TestPageContainer = ({ className }) => {
     setTimeout(() => {
       setQuestionNumber(questionNumber + 1);
       setShowRightAnswer(false);
-    }, 0);
+    }, 1500);
 
     if (questionNumber <= questionsLength) {
       rightAnswerCheck();
@@ -105,7 +112,12 @@ const TestPageContainer = ({ className }) => {
     localStorage.setItem(`results`, JSON.stringify(results));
     setQuestionNumber(1);
     setUserAnswer("");
-    setTestProgress({ answers: [] });
+    setTestProgress({
+      quizId: params.id,
+      answers: [],
+      date: getDate(),
+      quizLength: questions.length,
+    });
   };
 
   return (
@@ -118,11 +130,10 @@ const TestPageContainer = ({ className }) => {
             Вопрос {questionNumber}/{questions.length}
           </h3>
 
-          <h2 key={question._id}>{question.title}</h2>
+          <h2 key={question._id}>{question.questionTitle}</h2>
           {question.answers.map((answer) => (
             <Button
-              disabled={!!isAnswerChecked}
-              width="100%"
+              width="50%"
               key={String(answer.id)}
               className={
                 answer.description === rightAnswer?.description &&
@@ -167,7 +178,9 @@ const TestPageContainer = ({ className }) => {
 export const TestPage = styled(TestPageContainer)`
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.25rem;
+  margin: 0 8rem;
 
   & .info-block {
     display: flex;
@@ -195,9 +208,11 @@ export const TestPage = styled(TestPageContainer)`
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    background: #37363a;
+    color: #fff;
     border: 2px solid #e5e5e5;
     border-radius: 0.5rem;
-    min-height: 3rem;
+    // min-height: 3rem;
     transform: scale(105%);
   }
 
